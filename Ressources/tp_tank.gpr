@@ -1,0 +1,23 @@
+with "lib_ada_tank";
+
+project Tp_Tank is
+    for Create_Missing_Dirs use "True";
+    for Languages use ("Ada");
+    for Source_Dirs use ("src/**");
+    for Object_Dir use ".obj";
+    for Exec_Dir use "exec";
+    --  for Target use "arm-linux-gnueabi";
+    for Main use (
+        "exemple_ctrl_tank.adb",
+        "ctrl_tank.adb"
+    );
+
+    package Compiler is
+         for Default_Switches ("Ada")
+         use ("-O2","-gnatwae","-gnatyguxSI","-gnaty4");
+    end Compiler;
+
+    package Linker is
+        for Default_Switches ("Ada") use ("-lwiringPi");
+    end Linker;
+end Tp_Tank;
