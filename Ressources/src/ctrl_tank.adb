@@ -64,33 +64,32 @@ begin
             danger : T_Danger;
             centre : Float;
             somme : Float;
-            A : Float;
+            compt : Float;
             Pui : T_Power;
             Piste : T_Tracking;
         begin
             Le_Tank.Move (Pow);
             loop
-                A := 0.0;
+                compt := 0.0;
                 somme := 0.0;
                 Echeance := Clock + periode;
                 danger := Arret.Lire;
                 if danger = Stop then
                     exit;
                 elsif danger = Pause then
-                    --  Le_Tank.Stop;
-                    Le_Tank.Move (0);
+                    Le_Tank.Stop;
                 else
                     Le_Tank.Track (Piste);
                     for I in T_Index_Sensors loop
                         if Le_Tank.Get_Track_Channel (Piste, I) = True then
                             somme := somme + Float (I);
-                            A := A + 1.0;
+                            compt := compt + 1.0;
                         end if;
                     end loop;
-                    if A = 0.0 then
+                    if compt = 0.0 then
                         Spin (Le_Tank, Pow);
                     else
-                        centre := somme / A;
+                        centre := somme / compt;
                         Pui := T_Power ((centre - 1.5) * 6.0 * 0.6);
                         Le_Tank.Left (Pow - Pui);
                         Le_Tank.Right (Pow + Pui);
