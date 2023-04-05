@@ -9,7 +9,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Ctrl_Tank is
     Le_Tank : T_Tank;
     Piste   : T_Tracking;
-    Pow     : constant T_Power := 10;
+    Pow     : constant T_Power := 40;
     package Danger is
         type T_Danger is (Aucun, Pause, Stop);
     end Danger;
@@ -61,43 +61,39 @@ begin
         task body Suivre_Commander is
             periode : constant Time_Span := Ada.Real_Time.Milliseconds (20);
             Echeance : Time;
-            Pow : constant T_Power := 10;
-            garder_loop : Boolean := True;
-            Consigne : constant Float := 1.5;
             danger : T_Danger;
             centre : Float;
-            somme : Integer := 0;
-            compt : Integer := 0;
-            correction : Float;
-            i : Integer := 0;
+            somme : Float;
+            A : Float;
+            Pui : T_Power;
+            Piste : T_Tracking;
         begin
             Le_Tank.Move (Pow);
-            while garder_loop loop
+            loop
+                A := 0.0;
+                somme := 0.0;
                 Echeance := Clock + periode;
                 danger := Arret.Lire;
                 if danger = Stop then
-                    garder_loop := False;
+                    exit;
                 elsif danger = Pause then
-                    Le_Tank.Stop;
+                    --  Le_Tank.Stop;
+                    Le_Tank.Move (0);
                 else
+                    Le_Tank.Track (Piste);
                     for I in T_Index_Sensors loop
                         if Le_Tank.Get_Track_Channel (Piste, I) = True then
-                            somme := somme + i;
-                            compt := compt + 1;
+                            somme := somme + Float (I);
+                            A := A + 1.0;
                         end if;
-                        i := i + 1;
                     end loop;
-                    if compt /= 0 then
-                        centre := somme/compt;
+                    if A = 0.0 then
+                        Spin (Le_Tank, Pow);
                     else
-                        centre := 0;
-                    end if;
-                    if Consigne - centre = 0 then
-                        Le_Tank.Spin (Pow);
-                    else
-                        correction := (Consigne - centre) * 6 * 1.2;
-                        Le_Tank.Left (Pow + correction);
-                        Le_Tank.Right (Pow - correction);
+                        centre := somme / A;
+                        Pui := T_Power ((centre - 1.5) * 6.0 * 0.6);
+                        Le_Tank.Left (Pow - Pui);
+                        Le_Tank.Right (Pow + Pui);
                     end if;
                 end if;
                 delay until Echeance;
